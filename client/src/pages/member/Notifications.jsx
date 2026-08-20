@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Pin, CheckCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { notificationAPI } from '../../api/allAPIs';
+import { useSocket } from '../../context/SocketContext';
 import toast from 'react-hot-toast';
 
 const MemberNotifications = () => {
+  const socket = useSocket();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchNotices();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNotification = (newNotice) => {
+      setNotifications(prev => [newNotice, ...prev]);
+    };
+    socket.on('notification_received', handleNotification);
+    return () => {
+      socket.off('notification_received', handleNotification);
+    };
+  }, [socket]);
 
   const fetchNotices = async () => {
     try {

@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { addLiveNotification } from '../redux/slices/notificationSlice';
 import toast from 'react-hot-toast';
 
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
+  const dispatch = useDispatch();
   const [socket, setSocket] = useState(null);
   const { user } = useSelector(state => state.auth);
 
@@ -26,6 +28,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('notification_received', (data) => {
+      dispatch(addLiveNotification(data));
       toast((t) => (
         <div className="flex items-start gap-2">
           <span className="text-xl">📢</span>
@@ -34,7 +37,7 @@ export const SocketProvider = ({ children }) => {
             <p className="text-xs text-slate-500 line-clamp-1">{data.message}</p>
           </div>
         </div>
-      ), { duration: 5000 });
+      ), { duration: 6000 });
     });
 
     newSocket.on('complaint_created', (data) => {

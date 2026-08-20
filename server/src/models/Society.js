@@ -78,6 +78,10 @@ const SocietySchema = new mongoose.Schema({
       type: String,
       default: 'Emerald Heights Maintenance Committee'
     },
+    defaultResidentPassword: {
+      type: String,
+      default: 'password123'
+    },
     bankDetails: {
       accountName: String,
       accountNumber: String,

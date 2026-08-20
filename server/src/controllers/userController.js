@@ -68,11 +68,17 @@ const createMember = async (req, res, next) => {
       fullName,
       email,
       mobileNumber,
-      password = 'password123',
+      password,
       role = 'member',
       memberDetails,
       staffDetails
     } = req.body;
+
+    let finalPassword = password && password.trim() !== '' ? password.trim() : null;
+    if (!finalPassword) {
+      const society = await Society.findById(societyId);
+      finalPassword = society?.settings?.defaultResidentPassword || 'password123';
+    }
 
     const existingUser = await User.findOne({
       $or: [{ email: email.toLowerCase().trim() }, { mobileNumber: mobileNumber.trim() }]
@@ -90,7 +96,7 @@ const createMember = async (req, res, next) => {
       fullName,
       email: email.toLowerCase().trim(),
       mobileNumber: mobileNumber.trim(),
-      password,
+      password: finalPassword,
       role,
       memberDetails: memberDetails || {},
       staffDetails: staffDetails || {}

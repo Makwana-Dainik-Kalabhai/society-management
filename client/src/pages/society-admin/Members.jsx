@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { 
-  Users, Plus, Search, Filter, Download, Upload, Edit, Trash2, Phone, Mail, Car, Home, CheckCircle, X, KeyRound, ShieldAlert 
+  Users, Plus, Search, Filter, Download, Upload, Edit, Trash2, Phone, Mail, Car, Home, CheckCircle, X, KeyRound, ShieldAlert, Lock, Check, Sparkles 
 } from 'lucide-react';
 import { userAPI } from '../../api/userAPI';
 import { authAPI } from '../../api/authAPI';
+import { societyAPI } from '../../api/societyAPI';
 import toast from 'react-hot-toast';
 
 const Members = () => {
@@ -17,6 +18,8 @@ const Members = () => {
   const [selectedOwnerType, setSelectedOwnerType] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [globalPassword, setGlobalPassword] = useState('password123');
   const [editingMember, setEditingMember] = useState(null);
 
   // Form State
@@ -24,7 +27,7 @@ const Members = () => {
     fullName: '',
     email: '',
     mobileNumber: '',
-    password: 'password123',
+    password: '',
     role: 'member',
     memberDetails: {
       flatNumber: '',
@@ -69,7 +72,11 @@ const Members = () => {
         authAPI.getMe()
       ]);
       setMembers(res.data.members || []);
-      setSocietyData(meRes.data.society || user?.societyId);
+      const currentSoc = meRes.data.society || user?.societyId;
+      setSocietyData(currentSoc);
+      if (currentSoc?.settings?.defaultResidentPassword) {
+        setGlobalPassword(currentSoc.settings.defaultResidentPassword);
+      }
     } catch (err) {
       toast.error('Failed to load residents');
     } finally {
@@ -77,18 +84,42 @@ const Members = () => {
     }
   };
 
+  const handleUpdateGlobalPassword = async (e) => {
+    e.preventDefault();
+    if (!societyData?._id) return;
+    try {
+      await societyAPI.updateSociety(societyData._id, {
+        settings: {
+          ...(societyData.settings || {}),
+          defaultResidentPassword: globalPassword
+        }
+      });
+      toast.success('Society global resident password updated successfully!', { icon: '🔑' });
+      setShowPasswordModal(false);
+      fetchSocietyAndMembers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update global password');
+    }
+  };
+
   const handleCreateMember = async (e) => {
     e.preventDefault();
     try {
-      await userAPI.createMember(formData);
-      toast.success('Resident registered successfully! Password is set.', { icon: '🎉' });
+      const payload = {
+        ...formData,
+        password: formData.password && formData.password.trim() !== ''
+          ? formData.password.trim()
+          : (societyData?.settings?.defaultResidentPassword || globalPassword || 'password123')
+      };
+      await userAPI.createMember(payload);
+      toast.success('Resident registered successfully! Password set to global default.', { icon: '🎉' });
       setShowAddModal(false);
       fetchSocietyAndMembers();
       setFormData({
         fullName: '',
         email: '',
         mobileNumber: '',
-        password: 'password123',
+        password: '',
         role: 'member',
         memberDetails: {
           flatNumber: '',
@@ -186,7 +217,14 @@ const Members = () => {
           <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Resident Members Directory</h2>
           <p className="text-xs sm:text-sm text-slate-500">Manage apartment owners, tenants, wings & floors allocation, and member login accounts</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-semibold text-xs sm:text-sm flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800/60 transition-all"
+            title="Set default password for all new residents"
+          >
+            <Lock size={15} /> Global Password: <span className="font-mono font-bold bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800">{globalPassword}</span>
+          </button>
           <button
             onClick={handleExportCSV}
             className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm flex items-center gap-1.5 transition-all"
@@ -385,16 +423,24 @@ const Members = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Login Password</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    Login Password (Auto-Filled with Global Password)
+                  </label>
+                  <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                    Default: <strong className="font-mono bg-indigo-50 dark:bg-indigo-950/80 px-1.5 py-0.5 rounded">{globalPassword}</strong>
+                  </span>
+                </div>
                 <input
                   type="password"
-                  required
-                  placeholder="Set initial password for resident (e.g. password123)"
+                  placeholder={`Leave blank to use society default: ${globalPassword}`}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                 />
-                <span className="text-[10px] text-slate-400">Resident will use their email and this password to log in</span>
+                <span className="text-[10px] text-slate-400">
+                  ✨ Uses society's global password automatically. No need to type a password every time.
+                </span>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -649,6 +695,63 @@ const Members = () => {
                   Save Changes
                 </button>
                 <button type="button" onClick={() => setShowEditModal(false)} className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Global Resident Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 flex items-center justify-center">
+                  <Lock size={16} />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Global Resident Password</h3>
+              </div>
+              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateGlobalPassword} className="space-y-4 py-4 text-xs sm:text-sm">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Set a default initial password for all resident accounts in <strong>{societyData?.name || 'your society'}</strong>. When adding residents, they will automatically be assigned this password without having to enter it repeatedly.
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Default Resident Password
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Welcome@123 or password123"
+                  value={globalPassword}
+                  onChange={(e) => setGlobalPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs">
+                <p className="font-semibold flex items-center gap-1 mb-0.5">
+                  <Sparkles size={13} /> Time Saver Feature
+                </p>
+                <p className="text-[11px] opacity-90">
+                  New residents can log in with their email and this global password, and change it anytime from their profile.
+                </p>
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button type="submit" className="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold transition-all shadow-md">
+                  Save Global Password
+                </button>
+                <button type="button" onClick={() => setShowPasswordModal(false)} className="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
                   Cancel
                 </button>
               </div>

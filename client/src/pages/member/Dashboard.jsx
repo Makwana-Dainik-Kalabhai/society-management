@@ -47,17 +47,17 @@ const MemberDashboard = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                Resident Resident Portal
+                Resident Portal
               </span>
               <span className="text-xs text-slate-300">
-                Flat {user?.memberDetails?.wing || 'A'}-{user?.memberDetails?.flatNumber || '402'} ({user?.memberDetails?.isOwner ? 'Owner' : 'Tenant'})
+                Wing {user?.memberDetails?.wing || 'A'} - Flat {user?.memberDetails?.flatNumber || 'N/A'} ({user?.memberDetails?.isOwner ? 'Owner' : 'Tenant'})
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black mt-2 tracking-tight">
               Hello, {user?.fullName || 'Resident Member'} 👋
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              Welcome to your apartment portal at Emerald Heights Residency.
+              Welcome to your apartment dashboard at {user?.societyId?.name || 'your residential complex'}.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ const MemberDashboard = () => {
           isPositive={!dues?.totalAmountDue}
           icon={CreditCard}
           color={dues?.totalAmountDue ? 'rose' : 'emerald'}
-          subtitle={dues?.totalAmountDue ? 'Due by 10th' : 'Up to date'}
+          subtitle={dues?.totalAmountDue ? 'Payment Pending' : 'Up to date'}
         />
         <StatCard
           title="Active Complaints"
@@ -96,12 +96,12 @@ const MemberDashboard = () => {
           isPositive={openComplaintsCount === 0}
           icon={AlertCircle}
           color="amber"
-          subtitle="Avg TAT: 24 hrs"
+          subtitle="Helpdesk Tickets"
         />
         <StatCard
           title="Notice Board"
           value={notices.length}
-          change="3 urgent circulars"
+          change="Society circulars"
           isPositive={true}
           icon={Bell}
           color="indigo"
@@ -109,12 +109,12 @@ const MemberDashboard = () => {
         />
         <StatCard
           title="Registered Family & Vehicles"
-          value={`${user?.memberDetails?.familyMembers?.length || 2} Members`}
-          change={`${user?.memberDetails?.vehicleNumbers?.length || 2} Vehicles`}
+          value={`${user?.memberDetails?.familyMembers?.length || 0} Members`}
+          change={`${user?.memberDetails?.vehicleNumbers?.length || 0} Vehicles`}
           isPositive={true}
           icon={Home}
           color="purple"
-          subtitle="Parking Slot P-42"
+          subtitle={`Wing ${user?.memberDetails?.wing || 'A'}-${user?.memberDetails?.flatNumber || ''}`}
         />
       </div>
 

@@ -24,19 +24,23 @@ const Reports = () => {
     }
   };
 
-  const cashFlowData = reports?.cashFlow || [
-    { month: 'May', income: 72000, expense: 45000 },
-    { month: 'Jun', income: 84000, expense: 48000 },
-    { month: 'Jul', income: 98000, expense: 52000 },
-    { month: 'Aug', income: 89000, expense: 47000 },
-  ];
+  const cashFlowData = reports?.cashFlow && reports.cashFlow.length > 0
+    ? reports.cashFlow
+    : [
+        { month: 'May', income: 72000, expense: 45000 },
+        { month: 'Jun', income: 84000, expense: 48000 },
+        { month: 'Jul', income: 98000, expense: 52000 },
+        { month: 'Aug', income: 89000, expense: 47000 },
+      ];
 
-  const categoryDistribution = [
-    { name: 'Security & Staff', value: 48000, color: '#4f46e5' },
-    { name: 'Elevator & Lift AMC', value: 22000, color: '#7c3aed' },
-    { name: 'Common Electricity', value: 14250, color: '#06b6d4' },
-    { name: 'Gardening & Pest', value: 6500, color: '#10b981' },
-  ];
+  const categoryDistribution = reports?.expenseCategories && reports.expenseCategories.length > 0
+    ? reports.expenseCategories
+    : [
+        { name: 'SECURITY & STAFF', value: 48000, color: '#4f46e5' },
+        { name: 'ELEVATOR & LIFT AMC', value: 22000, color: '#7c3aed' },
+        { name: 'COMMON ELECTRICITY', value: 14250, color: '#06b6d4' },
+        { name: 'GARDENING & PEST', value: 6500, color: '#10b981' },
+      ];
 
   return (
     <div className="space-y-6">

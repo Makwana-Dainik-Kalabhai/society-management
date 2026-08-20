@@ -17,6 +17,8 @@ const Maintenance = () => {
     amount: 3500,
     dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 10).toISOString().slice(0,10),
     penaltyAmount: 150,
+    paymentReceiver: '',
+    paymentUpiId: '',
     description: 'Monthly common maintenance assessment'
   });
 
@@ -50,6 +52,17 @@ const Maintenance = () => {
       toast.success('Monthly maintenance bill batch generated successfully!');
       setShowGenerateModal(false);
       fetchData();
+      setFormData({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        title: '',
+        amount: 3500,
+        dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 10).toISOString().slice(0,10),
+        penaltyAmount: 150,
+        paymentReceiver: '',
+        paymentUpiId: '',
+        description: 'Monthly common maintenance assessment'
+      });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to generate billing');
     }
@@ -63,7 +76,7 @@ const Maintenance = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Maintenance & Billing Management</h2>
-          <p className="text-xs sm:text-sm text-slate-500">Generate monthly maintenance assessment and track overdue defaulters</p>
+          <p className="text-xs sm:text-sm text-slate-500">Generate monthly maintenance assessment, set Razorpay beneficiaries, and track defaulters</p>
         </div>
         <button
           onClick={() => setShowGenerateModal(true)}
@@ -103,6 +116,12 @@ const Maintenance = () => {
 
                 <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">{b.title}</h3>
                 <p className="text-2xl font-black text-brand-600 dark:text-brand-400 mt-1">₹{b.amount.toLocaleString('en-IN')} <span className="text-xs font-medium text-slate-400">/ flat</span></p>
+
+                {b.paymentReceiver && (
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                    Beneficiary: <strong className="text-slate-800 dark:text-slate-200">{b.paymentReceiver}</strong>
+                  </p>
+                )}
 
                 {/* Progress Bar */}
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -175,10 +194,15 @@ const Maintenance = () => {
       {/* Generate Bill Modal */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
-            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 mb-4">Generate Monthly Billing Batch</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">Generate Monthly Billing Batch</h3>
+              <button onClick={() => setShowGenerateModal(false)} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <X size={18} />
+              </button>
+            </div>
             
-            <form onSubmit={handleGenerateBill} className="space-y-3.5 text-xs sm:text-sm">
+            <form onSubmit={handleGenerateBill} className="space-y-3.5 py-3 text-xs sm:text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Month</label>
@@ -234,6 +258,28 @@ const Maintenance = () => {
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Razorpay Payment Receiver / Beneficiary Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Emerald Heights Society Maintenance A/C"
+                  value={formData.paymentReceiver}
+                  onChange={(e) => setFormData({ ...formData, paymentReceiver: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Receiver UPI ID (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. emeraldheights@icici"
+                  value={formData.paymentUpiId}
+                  onChange={(e) => setFormData({ ...formData, paymentUpiId: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+                />
               </div>
 
               <div className="pt-4 flex gap-3">

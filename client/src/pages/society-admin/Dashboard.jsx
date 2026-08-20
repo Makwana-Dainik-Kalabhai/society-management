@@ -43,11 +43,11 @@ const SocietyAdminDashboard = () => {
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <span className="px-3 py-1 rounded-full bg-brand-500/30 border border-brand-400/40 text-brand-200 text-xs font-bold uppercase tracking-wider">
-              {user?.societyId?.name || 'Emerald Heights Residency'}
+              {user?.societyId?.name || 'Housing Society Portal'}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black mt-2 tracking-tight">Society Management Desk</h2>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              Welcome Col. Rajesh Bakshi. Monthly billing collection is currently on track at 86%.
+              Welcome {user?.fullName || 'Society Secretary'}. Managing society operations, billing collections, and resident helpdesk tickets.
             </p>
           </div>
 
@@ -72,39 +72,39 @@ const SocietyAdminDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Residents"
-          value={stats?.totalMembers || '60'}
-          change="+4 this quarter"
+          value={stats?.totalMembers || 0}
+          change="Verified Members"
           isPositive={true}
           icon={Users}
           color="indigo"
-          subtitle="Wings A, B, C"
+          subtitle="Registered in complex"
         />
         <StatCard
           title="Maintenance Collected"
-          value={`₹${(stats?.totalCollected || 89000).toLocaleString('en-IN')}`}
-          change="86% collected"
+          value={`₹${(stats?.totalCollected || 0).toLocaleString('en-IN')}`}
+          change="Completed payments"
           isPositive={true}
           icon={CreditCard}
           color="emerald"
-          subtitle="August 2026"
+          subtitle="Current Collections"
         />
         <StatCard
           title="Open Complaints"
-          value={stats?.openComplaints || '2'}
-          change="1 In-Progress"
+          value={stats?.openComplaints || 0}
+          change={`${stats?.resolvedComplaints || 0} resolved`}
           isPositive={true}
           icon={AlertCircle}
           color="amber"
-          subtitle="Avg TAT: 24 hrs"
+          subtitle="Pending Attention"
         />
         <StatCard
           title="Approved Expenses"
-          value={`₹${(stats?.totalExpenses || 90750).toLocaleString('en-IN')}`}
-          change="5 logged this mo"
+          value={`₹${(stats?.totalExpenses || 0).toLocaleString('en-IN')}`}
+          change="Approved Vouchers"
           isPositive={false}
           icon={Wallet}
           color="purple"
-          subtitle="Net Surplus healthy"
+          subtitle="Society Expenditures"
         />
       </div>
 
