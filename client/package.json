@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "bun run build"
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.1",
