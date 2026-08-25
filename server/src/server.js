@@ -15,17 +15,6 @@ const PORT = process.env.PORT || 5000;
 // Create HTTP server
 const server = http.createServer(app);
 
-// In app.js - Simplified CORS
-const corsOptions = {
-  origin: true, // Reflects request origin
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
 
 // Socket.io for Real-time Notifications & Live Chat / Ticket Updates
 const io = new Server(server, {
