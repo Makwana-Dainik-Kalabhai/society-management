@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "build": "npm install --production && npm run clean && npm run copy-files",
     "seed": "node src/config/seed.js"
   },
   "dependencies": {
