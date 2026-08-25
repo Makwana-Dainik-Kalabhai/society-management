@@ -1,6 +1,5 @@
-const User = require('../models/User');
-const Society = require('../models/Society');
-const { generateToken, generateRefreshToken } = require('../utils/jwt');
+const User = require("../models/User");
+const { generateToken, generateRefreshToken } = require("../utils/jwt");
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -8,19 +7,22 @@ const { generateToken, generateRefreshToken } = require('../utils/jwt');
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log(req.body);
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide an email and password'
+        message: "Please provide an email and password",
       });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password').populate('societyId');
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+      .select("+password")
+      .populate("societyId");
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -28,14 +30,14 @@ const login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Your account is deactivated. Contact society admin.'
+        message: "Your account is deactivated. Contact society admin.",
       });
     }
 
@@ -51,10 +53,10 @@ const login = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       token,
       refreshToken,
-      user: userObj
+      user: userObj,
     });
   } catch (err) {
     next(err);
@@ -71,7 +73,7 @@ const otpLogin = async (req, res, next) => {
     if (!mobileNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a valid registered mobile number'
+        message: "Please provide a valid registered mobile number",
       });
     }
 
@@ -79,22 +81,22 @@ const otpLogin = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'No registered account found with this mobile number.'
+        message: "No registered account found with this mobile number.",
       });
     }
 
     // Generate 6-digit OTP (e.g., 123456 for predictable demo access)
-    const otpCode = '123456';
+    const otpCode = "123456";
     user.otp = {
       code: otpCode,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 mins
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 mins
     };
     await user.save();
 
     res.json({
       success: true,
       message: `OTP sent successfully to +91 ${mobileNumber}. (Demo OTP: 123456)`,
-      mobileNumber
+      mobileNumber,
     });
   } catch (err) {
     next(err);
@@ -111,22 +113,24 @@ const verifyOTP = async (req, res, next) => {
     if (!mobileNumber || !otp) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide mobile number and OTP'
+        message: "Please provide mobile number and OTP",
       });
     }
 
-    const user = await User.findOne({ mobileNumber: mobileNumber.trim() }).populate('societyId');
+    const user = await User.findOne({
+      mobileNumber: mobileNumber.trim(),
+    }).populate("societyId");
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     if (!user.otp || user.otp.code !== otp || new Date() > user.otp.expiresAt) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired OTP. Please request a new one.'
+        message: "Invalid or expired OTP. Please request a new one.",
       });
     }
 
@@ -142,10 +146,10 @@ const verifyOTP = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'OTP verified successfully',
+      message: "OTP verified successfully",
       token,
       refreshToken,
-      user: userObj
+      user: userObj,
     });
   } catch (err) {
     next(err);
@@ -157,10 +161,10 @@ const verifyOTP = async (req, res, next) => {
 // @access  Private
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).populate('societyId');
+    const user = await User.findById(req.user._id).populate("societyId");
     res.json({
       success: true,
-      user
+      user,
     });
   } catch (err) {
     next(err);
@@ -176,25 +180,30 @@ const updateProfile = async (req, res, next) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     if (fullName) user.fullName = fullName;
     if (profileImage) user.profileImage = profileImage;
     if (memberDetails) {
-      user.memberDetails = { ...user.memberDetails.toObject(), ...memberDetails };
+      user.memberDetails = {
+        ...user.memberDetails.toObject(),
+        ...memberDetails,
+      };
     }
-    if (staffDetails && user.role === 'staff') {
+    if (staffDetails && user.role === "staff") {
       user.staffDetails = { ...user.staffDetails.toObject(), ...staffDetails };
     }
 
     await user.save();
 
-    const updatedUser = await User.findById(user._id).populate('societyId');
+    const updatedUser = await User.findById(user._id).populate("societyId");
     res.json({
       success: true,
-      message: 'Profile updated successfully',
-      user: updatedUser
+      message: "Profile updated successfully",
+      user: updatedUser,
     });
   } catch (err) {
     next(err);
@@ -207,11 +216,13 @@ const updateProfile = async (req, res, next) => {
 const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user._id).select('+password');
+    const user = await User.findById(req.user._id).select("+password");
 
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Current password does not match' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Current password does not match" });
     }
 
     user.password = newPassword;
@@ -219,7 +230,7 @@ const changePassword = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'Password updated successfully'
+      message: "Password updated successfully",
     });
   } catch (err) {
     next(err);
@@ -232,5 +243,5 @@ module.exports = {
   verifyOTP,
   getMe,
   updateProfile,
-  changePassword
+  changePassword,
 };

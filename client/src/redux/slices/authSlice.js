@@ -3,7 +3,7 @@ import { authAPI } from '../../api/authAPI';
 
 // Restore user and token from localStorage if available
 const token = localStorage.getItem('token') || null;
-const user = JSON.parse(localStorage.getItem('user') || 'null');
+const user = JSON.parse(!!localStorage.getItem('user') || 'null');
 
 export const loginUser = createAsyncThunk(
   'auth/login',
